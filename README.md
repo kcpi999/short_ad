@@ -1,7 +1,10 @@
 This is yii2 project.
 It gives you an idea of how to create short internet addresses, just like goo.gl and other services.
+
 -------
+
 Deploy:
+
     0. Clone repo.
     1. All dependencies should be installed via Composer.
     2. Load db_dump__.sql file into an existing database (`short_ad` by default).
