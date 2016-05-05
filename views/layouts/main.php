@@ -20,7 +20,7 @@ AppAsset::register($this);
     <?= Html::csrfMetaTags() ?>
     <title><?= Html::encode($this->title) ?></title>
     <?php $this->head() ?>
-    <?php $this->registerJsFile(Yii::$app->request->baseUrl . '/assets/main.js',['depends' => [\yii\web\JqueryAsset::className()]]); ?>
+    <?php $this->registerJsFile(Yii::$app->request->baseUrl . '/js/main.js',['depends' => [\yii\web\JqueryAsset::className()]]); ?>
 </head>
 <body>
 <?php $this->beginBody() ?>
