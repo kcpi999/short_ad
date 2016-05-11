@@ -72,13 +72,8 @@ class SiteController extends Controller
         $url_obj = Url::findByShortUrl($uri);
         if (!$url_obj) {
             throw new \yii\web\NotFoundHttpException();
-        }
-        //need to add "http://" if it's not there.
-        $original_url = $url_obj->original_url;        
-        $redirect_url = parse_url($original_url, PHP_URL_SCHEME) === null ?
-            'http://' . $original_url : $original_url;
-        
-        //header("Location: ". $redirect_url);die;
+        }        
+        $redirect_url = $url_obj->original_url;
         
         return $this->redirect($redirect_url, 301);
     }  

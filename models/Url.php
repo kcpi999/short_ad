@@ -72,7 +72,7 @@ class Url extends \yii\db\ActiveRecord
     {
         $result = static::find()
             ->where('original_url_hash = :hash', ['hash' => $hash])
-            ->one();
+            ->all();
         return $result;
     }
     

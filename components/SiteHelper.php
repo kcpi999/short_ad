@@ -6,6 +6,7 @@ use app\models\Url;
 
 /**
  * different helper functions here.
+ * why not complaining about static functions here ?
  */
 class SiteHelper
 {
@@ -13,7 +14,7 @@ class SiteHelper
     const SHORT_URL_LENGTH = 8; // 52 ^ 8 = 53459728531456 combinations. [a-zA-Z]
     
     // we'll use only these symbols to generate short urls
-    const CHARS_SET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';  
+    const CHARS_SET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     
     /**
      * generates unique short url. (Not URL but URI actually)
@@ -36,6 +37,7 @@ class SiteHelper
      * checks if string $url is a valid URL
      * Let's assume, we dont need unicode urls.
      * Because we lazy and do not want to install intl.
+     * And we dont trust filter_var() and prefer custom modifications here anytime.
      */
     public static function isValidUrl($url)
     {
@@ -62,24 +64,30 @@ class SiteHelper
     public static function makeShortUrl($original_url)
     {
         $hash = md5($original_url);
-        $url = Url::findByHash($hash);
-        if ($url && $url->original_url == $original_url) {
-            return self::getFullShortUrl($url->short_url);
+        $urls = Url::findByHash($hash);
+        foreach ($urls as $url) {
+            if ($url && $url->original_url == $original_url) {
+                return self::getFullShortUrl($url->short_url);
+            }
         }
-        
-        $transaction = \Yii::$app->db->beginTransaction();
+
         try {
             $url = new Url();
-            $url->original_url = $original_url;
+            $url->original_url = parse_url($original_url, PHP_URL_SCHEME) === null ?
+                'http://' . $original_url : $original_url;
             $url->original_url_hash = $hash;
             $url->short_url = self::generateShortUrl();
-            $url->status = 1;            
+            $url->status = 1;
             $url->created_at = date('Y-m-d H:i:s', time());
             $url->save();
-            $transaction->commit();
         } catch(\Exception $e) {
-            $transaction->rollBack();
-            Yii::error($e->getMessage());
+            try {
+                // I once was told everyone in the world deserves a second chance nomatter what.
+                $url->short_url = self::generateShortUrl();
+                $url->save();
+            } catch (\Exception $e) {
+                \Yii::error($e->getMessage());
+            }
         }
         return self::getFullShortUrl($url->short_url);
     }
@@ -88,7 +96,7 @@ class SiteHelper
      * Adds this site domain to short url path.
      * (no need to store site domain in database)
      */
-    public static function getFullShortUrl($short_url)
+    protected static function getFullShortUrl($short_url)
     {
         $base = $_SERVER['SERVER_NAME'];
         return $base . '/' . $short_url;
